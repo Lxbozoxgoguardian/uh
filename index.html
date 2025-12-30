@@ -58,44 +58,98 @@
         transform: scale(1.05);
     }
 
+    .switch-link {
+        margin-top: 15px;
+        display: block;
+        color: #ff6f61;
+        cursor: pointer;
+        font-size: 0.9em;
+        text-decoration: underline;
+    }
+
     .error {
         color: #f44336;
         margin-top: 10px;
         font-size: 0.9em;
+    }
+
+    .success {
+        color: #4caf50;
     }
 </style>
 </head>
 <body>
 
 <div class="login-container">
-    <h1>Welcome!</h1>
+    <h1 id="form-title">Login</h1>
     <input type="text" id="username" placeholder="Enter your name">
     <input type="password" id="password" placeholder="Enter password">
-    <button onclick="login()">Login</button>
+    <button onclick="handleSubmit()">Login</button>
     <div id="error" class="error"></div>
+    <span id="switch-form" class="switch-link" onclick="switchForm()">Create Account</span>
 </div>
 
 <script>
-    function login() {
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value.trim();
-        const errorDiv = document.getElementById('error');
+let isLogin = true; // true = login form, false = create account
 
-        // Simple check, you can replace this with your own system
-        if(username === "" || password === "") {
-            errorDiv.textContent = "Please enter both fields!";
-            return;
-        }
+function switchForm() {
+    isLogin = !isLogin;
+    const title = document.getElementById('form-title');
+    const btn = document.querySelector('.login-container button');
+    const switchLink = document.getElementById('switch-form');
+    const errorDiv = document.getElementById('error');
 
-        if(password === "bluekit") { // Example password
+    errorDiv.textContent = "";
+    if(isLogin) {
+        title.textContent = "Login";
+        btn.textContent = "Login";
+        switchLink.textContent = "Create Account";
+    } else {
+        title.textContent = "Create Account";
+        btn.textContent = "Sign Up";
+        switchLink.textContent = "Back to Login";
+    }
+}
+
+function handleSubmit() {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const errorDiv = document.getElementById('error');
+
+    if(username === "" || password === "") {
+        errorDiv.textContent = "Please fill in both fields!";
+        return;
+    }
+
+    let users = JSON.parse(localStorage.getItem('users') || "{}");
+
+    if(isLogin) {
+        // Login
+        if(users[username] && users[username] === password) {
             errorDiv.textContent = "";
-            alert(`Welcome, ${username}!`);
+            alert(`Welcome back, ${username}!`);
             // Redirect to your quiz page
-            window.location.href = "quiz.html"; // change to your actual page
+            window.location.href = "quiz.html"; // replace with your actual page
         } else {
-            errorDiv.textContent = "Wrong password! Try again.";
+            errorDiv.textContent = "Incorrect username or password!";
+        }
+    } else {
+        // Create Account
+        if(users[username]) {
+            errorDiv.textContent = "Username already exists!";
+        } else {
+            users[username] = password;
+            localStorage.setItem('users', JSON.stringify(users));
+            errorDiv.textContent = "Account created successfully!";
+            errorDiv.classList.add('success');
+            // Switch to login
+            setTimeout(() => {
+                switchForm();
+                errorDiv.classList.remove('success');
+            }, 1000);
         }
     }
+}
 </script>
 
 </body>
